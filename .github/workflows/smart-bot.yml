@@ -1,1 +1,55 @@
+name: 🤖 Smart Issues & PR Bot
+
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  handle-issues:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add triage label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: needs-triage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on new issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: "👋 Thanks for reporting this! We'll review it soon. Please include logs/steps if you haven't already."
+            })
+
+  handle-prs:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add review label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: needs-review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on new PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: "🔥 Thanks for the PR! Make sure tests pass and describe your changes clearly so review is fast."
+            })
 
